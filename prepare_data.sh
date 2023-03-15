@@ -1,6 +1,6 @@
+#!/bin/sh
 # Prepare data for training and testing
-python src/prepare_data.py --input data/goodreads_train.csv \
-                           --output data/processed_goodreads_train.csv
-
-python src/prepare_data.py --input data/goodreads_test.csv \
-                           --output data/processed_goodreads_test.csv
+INPUT=$1
+OUTPUT=$2
+python src/prepare_data.py --input $INPUT \
+                           --output $OUTPUT
