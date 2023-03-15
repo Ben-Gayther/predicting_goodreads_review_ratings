@@ -31,8 +31,13 @@ def main():
     # Set logging level
     logging.basicConfig(level=args.logging)
 
+    # Detect device
+    device = torch.device(
+        'cuda') if torch.cuda.is_available() else torch.device('cpu')
+    
     # Load model
     model = AutoModelForSequenceClassification.from_pretrained(args.model)
+    model.to(device)
     logging.info('Loaded model')
 
     # Load training arguments
