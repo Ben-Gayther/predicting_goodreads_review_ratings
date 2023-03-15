@@ -112,7 +112,7 @@ def calc_comments_per_book(df: pl.DataFrame) -> pl.DataFrame:
     return df.groupby('book_id').agg(
         pl.sum('n_comments').alias('comments_per_book'))
 
-
+# Idea behind this is to perhaps use these extra features to weight the predictions of the transformer model
 def add_new_features(df: pl.DataFrame) -> pl.DataFrame:
     """Add new features to dataframe"""
     logging.info('Adding new features')
@@ -138,7 +138,7 @@ def add_new_features(df: pl.DataFrame) -> pl.DataFrame:
     return df
 
 
-def main():
+def cli() -> argparse.Namespace:
     """Create command line interface for preprocessing data"""
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', type=str,
@@ -147,6 +147,12 @@ def main():
                         default='data/processed_goodreads_train.csv')
     parser.add_argument('--logging', type=str, default='INFO')
     args = parser.parse_args()
+    return args
+
+
+def main():
+    # Parse command line arguments
+    args = cli()
 
     # Set logging level
     logging.basicConfig(level=args.logging)

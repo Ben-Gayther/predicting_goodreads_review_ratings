@@ -18,7 +18,8 @@ import torch
 def tokenize_function(examples: Dataset, tokenizer: AutoTokenizer, max_length: int) -> Dataset:
     """Tokenize data"""
     rating = examples['rating']
-    examples = tokenizer(examples['text'], truncation=True, padding='max_length', max_length=max_length)
+    examples = tokenizer(
+        examples['text'], truncation=True, padding='max_length', max_length=max_length)
     examples['label'] = rating
     return examples
 
@@ -38,7 +39,7 @@ def compute_metrics(eval_pred: torch.Tensor) -> dict:
     }
 
 
-def cli():
+def cli() -> argparse.Namespace:
     """Create command line interface for training model"""
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', type=str,
@@ -56,15 +57,15 @@ def cli():
 
 
 def main():
-    """Main function"""
-    # Get arguments
+    # Parse command line arguments
     args = cli()
 
     # Set logging level
     logging.basicConfig(level=args.logging)
 
     # Detect device
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    device = torch.device(
+        'cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     # Read data
     df = pd.read_csv(args.input)
@@ -96,7 +97,8 @@ def main():
     label2id = {k: k for k in range(6)}
 
     # Create model
-    model = AutoModelForSequenceClassification.from_pretrained(args.model, id2label=id2label, label2id=label2id)
+    model = AutoModelForSequenceClassification.from_pretrained(
+        args.model, id2label=id2label, label2id=label2id, num_labels=6)
     model.to(device)
 
     results_dir = args.output + args.model
@@ -130,19 +132,20 @@ def main():
     train_results = trainer.train()
     train_results_df = pd.DataFrame(train_results.metrics, index=[0])
     train_results_df.to_csv(f'{results_dir}/train_results.csv', index=False)
-    logging.info(f'Trained model and saved results to {results_dir}/train_results.csv')
-
+    logging.info(
+        f'Trained model and saved results to {results_dir}/train_results.csv')
 
     # Evaluate model
     eval_results = trainer.evaluate()
     eval_results_df = pd.DataFrame(eval_results, index=[0])
     eval_results_df.to_csv(f'{results_dir}/eval_results.csv', index=False)
-    logging.info(f'Evaluated model and saved results to {results_dir}/eval_results.csv')
-
+    logging.info(
+        f'Evaluated model and saved results to {results_dir}/eval_results.csv')
 
     # Save model
     trainer.save_model(results_dir)
-    logging.info(f'Saved model to {results_dir}')
+    tokenizer.save_pretrained(results_dir)
+    logging.info(f'Saved model and tokenizer to {results_dir}')
 
 
 if __name__ == '__main__':
