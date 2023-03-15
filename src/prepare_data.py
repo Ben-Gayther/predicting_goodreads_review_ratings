@@ -1,5 +1,7 @@
+#!/usr/bin/env python
 import polars as pl
 from nltk.corpus import stopwords
+from operator import itemgetter
 import string
 import re
 import pathlib
@@ -12,7 +14,7 @@ PUNCT_TO_REMOVE = string.punctuation
 
 def read_data(path: str) -> pl.DataFrame:
     """Read data from csv file"""
-    df = pl.read_csv(path)  # try polars
+    df = pl.read_csv(path, has_headers=True)
     return df
 
 
@@ -34,11 +36,12 @@ def remove_stopwords(text: str) -> str:
 
 
 def remove_punctuation(text: str) -> str:
+    """Remove punctuation from a string"""
     return text.translate(str.maketrans('', '', PUNCT_TO_REMOVE))
 
 
-# Goodreads specific
 def remove_spoiler_alert(text: str) -> str:
+    """Remove spoiler alert from a string (Goodreads specific)"""
     spoiler = re.compile(r'(\(view spoiler\).*?\(hide spoiler\))')
     return spoiler.sub(r' ', text)
 
@@ -64,6 +67,77 @@ def preprocess(df: pl.DataFrame, text_col: str = 'text') -> pl.DataFrame:
     return df
 
 
+def calc_time_diff(df: pl.DataFrame) -> pl.DataFrame:
+    """Calculate time difference between started_at and read_at"""
+    # Note date format is Sun Jul 30 07:44:10 -0700 2017 [day month day time zone year]
+    df = df.with_columns([
+        pl.col('started_at').str.strptime(
+            pl.Date, '%a %b %d %H:%M:%S %z %Y').alias('started_at'),
+        pl.col('read_at').str.strptime(
+            pl.Date, '%a %b %d %H:%M:%S %z %Y').alias('read_at'),
+    ])
+
+    df = df.with_column(
+        (pl.col('read_at') - pl.col('started_at')
+         ).cast(pl.Int32).alias('days_to_read')
+    )
+
+    return df
+
+
+def calc_reviews_per_user(df: pl.DataFrame) -> pl.DataFrame:
+    """Calculate number of reviews per user"""
+    return df.groupby('user_id').agg(
+        pl.count('review_id').alias('reviews_per_user'))
+
+
+def calc_votes_per_user(df: pl.DataFrame) -> pl.DataFrame:
+    """Calculate number of votes per user"""
+    return df.groupby('user_id').agg(pl.sum('n_votes').alias('votes_per_user'))
+
+
+def calc_reviews_per_book(df: pl.DataFrame) -> pl.DataFrame:
+    """Calculate number of reviews per book"""
+    return df.groupby('book_id').agg(
+        pl.count('review_id').alias('reviews_per_book'))
+
+
+def calc_votes_per_book(df: pl.DataFrame) -> pl.DataFrame:
+    """Calculate number of votes per book"""
+    return df.groupby('book_id').agg(pl.sum('n_votes').alias('votes_per_book'))
+
+
+def calc_comments_per_book(df: pl.DataFrame) -> pl.DataFrame:
+    """Calculate number of comments per book"""
+    return df.groupby('book_id').agg(
+        pl.sum('n_comments').alias('comments_per_book'))
+
+
+def add_new_features(df: pl.DataFrame) -> pl.DataFrame:
+    """Add new features to dataframe"""
+    logging.info('Adding new features')
+
+    df = calc_time_diff(df)
+    logging.info('Calculated time difference')
+
+    df = df.join(calc_reviews_per_user(df), on='user_id', how='left')
+    logging.info('Calculated reviews per user')
+
+    df = df.join(calc_votes_per_user(df), on='user_id', how='left')
+    logging.info('Calculated votes per user')
+
+    df = df.join(calc_reviews_per_book(df), on='book_id', how='left')
+    logging.info('Calculated reviews per book')
+
+    df = df.join(calc_votes_per_book(df), on='book_id', how='left')
+    logging.info('Calculated votes per book')
+
+    df = df.join(calc_comments_per_book(df), on='book_id', how='left')
+    logging.info('Calculated comments per book')
+
+    return df
+
+
 def main():
     """Create command line interface for preprocessing data"""
     parser = argparse.ArgumentParser()
@@ -83,6 +157,15 @@ def main():
     # Read data
     df = read_data(args.input)
     logging.info(f'Read data from {args.input}')
+    logging.info(f'Fields are {df.columns}')
+    # Fields should be ["user_id", "book_id", "review_id", "rating", "review_text", "date_added", "date_updated", "read_at", "started_at", "n_votes", "n_comments"]
+
+    # if logging.getLogger().isEnabledFor(logging.INFO):
+    #     print(df)
+
+    # Add new features
+    df = add_new_features(df)
+    logging.info(f'Columns are now: {df.columns}')
 
     # Preprocess data
     df = preprocess(df, text_col='review_text')
