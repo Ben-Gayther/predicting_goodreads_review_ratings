@@ -169,9 +169,9 @@ def main():
     # if logging.getLogger().isEnabledFor(logging.INFO):
     #     print(df)
 
-    # Add new features
-    df = add_new_features(df)
-    logging.info(f'Columns are now: {df.columns}')
+    # Add new features (commented out for now)
+    # df = add_new_features(df)
+    # logging.info(f'Columns are now: {df.columns}')
 
     # Preprocess data
     df = preprocess(df, text_col='review_text')
