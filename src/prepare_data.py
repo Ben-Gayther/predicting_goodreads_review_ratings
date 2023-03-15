@@ -150,10 +150,7 @@ def cli() -> argparse.Namespace:
     return args
 
 
-def main():
-    # Parse command line arguments
-    args = cli()
-
+def main(args):
     # Set logging level
     logging.basicConfig(level=args.logging)
 
@@ -182,4 +179,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # Parse command line arguments
+    args = cli()
+
+    main(args)

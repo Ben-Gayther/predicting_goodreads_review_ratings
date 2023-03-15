@@ -24,10 +24,7 @@ def cli() -> argparse.Namespace:
     args = parser.parse_args()
     return args
 
-def main():
-    # Parse command line arguments
-    args = cli()
-
+def main(args):
     # Set logging level
     logging.basicConfig(level=args.logging)
 
@@ -81,4 +78,7 @@ def main():
     logging.info('Saved predictions to csv file')
 
 if __name__ == '__main__':
+    # Parse command line arguments
+    args = cli()
+
     main()
