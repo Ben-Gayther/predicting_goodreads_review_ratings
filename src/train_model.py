@@ -110,6 +110,8 @@ def main(args):
         per_device_train_batch_size=args.batch_size,
         per_device_eval_batch_size=args.batch_size,
         weight_decay=0.01,
+        learning_rate=args.learning_rate,
+        fp16=True,
         evaluation_strategy='epoch',
         save_strategy='epoch',
         load_best_model_at_end=True,
