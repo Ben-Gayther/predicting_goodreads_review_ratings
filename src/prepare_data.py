@@ -46,24 +46,16 @@ def remove_spoiler_alert(text: str) -> str:
     return spoiler.sub(r' ', text)
 
 
-def preprocess(df: pl.DataFrame, text_col: str = 'text') -> pl.DataFrame:
+def preprocess(df: pl.DataFrame, text_col: str) -> pl.DataFrame:
     """Preprocess text data"""
-    logging.info('Preprocessing data')
-    df['text'] = df[text_col].apply(remove_urls)
-    logging.info('Removed urls')
-
-    df['text'] = df[text_col].apply(remove_html)
-    logging.info('Removed html tags')
-
-    df['text'] = df[text_col].apply(remove_stopwords)
-    logging.info('Removed stop words')
-
-    df['text'] = df[text_col].apply(remove_punctuation)
-    logging.info('Removed punctuation')
-
-    df['text'] = df[text_col].apply(remove_spoiler_alert)
-    logging.info('Removed spoiler alert')
-
+    # Apply preprocessing functions to text_col and make new column 'text'
+    df = df.with_column(
+            pl.col(text_col).apply(remove_urls)
+                            .apply(remove_html)
+                            .apply(remove_stopwords)
+                            .apply(remove_punctuation)
+                            .apply(remove_spoiler_alert)
+                            .alias('text'))
     return df
 
 
@@ -112,11 +104,10 @@ def calc_comments_per_book(df: pl.DataFrame) -> pl.DataFrame:
     return df.groupby('book_id').agg(
         pl.sum('n_comments').alias('comments_per_book'))
 
+
 # Idea behind this is to perhaps use these extra features to weight the predictions of the transformer model
 def add_new_features(df: pl.DataFrame) -> pl.DataFrame:
     """Add new features to dataframe"""
-    logging.info('Adding new features')
-
     df = calc_time_diff(df)
     logging.info('Calculated time difference')
 
@@ -175,6 +166,7 @@ def main(args):
 
     # Preprocess data
     df = preprocess(df, text_col='review_text')
+    logging.info('Preprocessed data')
 
     # Save data
     df.to_csv(args.output)
