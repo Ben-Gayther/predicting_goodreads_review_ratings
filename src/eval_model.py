@@ -17,7 +17,7 @@ def cli(opt_args=None) -> argparse.Namespace:
     parser.add_argument('--input', type=str,
                         default='data/processed_goodreads_test.csv')
     parser.add_argument('--model', type=str, default='models/distilbert-base-uncased/')
-    parser.add_argument('--training_args', type=str, default='models/distilbert-base-uncased/training_args.bin')
+    # parser.add_argument('--training_args', type=str, default='models/distilbert-base-uncased/training_args.bin')
     parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--output', type=str, default='data/predictions.csv')
     parser.add_argument('--test_run', action='store_true')
@@ -41,9 +41,9 @@ def main(args):
     model.to(device)
     logging.info('Loaded model')
 
-    # Load training arguments
-    training_args = torch.load(args.training_args)
-    logging.info('Loaded training arguments')
+    # Load training arguments (unused)
+    # training_args = torch.load(args.training_args)
+    # logging.info('Loaded training arguments')
 
     # Load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.model)
