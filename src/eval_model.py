@@ -20,6 +20,7 @@ def cli(opt_args=None) -> argparse.Namespace:
     parser.add_argument('--training_args', type=str, default='models/distilbert-base-uncased/training_args.bin')
     parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--output', type=str, default='data/predictions.csv')
+    parser.add_argument('--test_run', action='store_true')
     parser.add_argument('--logging', type=str, default='INFO')
     if opt_args is not None:
         args = parser.parse_args(opt_args)
@@ -50,6 +51,9 @@ def main(args):
 
     # Load test data
     test_data = pd.read_csv(args.input)
+    if args.test_run:
+        test_data = test_data.sample(100)
+        logging.info('Doing test run with only 100 samples')
     logging.info('Loaded test data')
 
     # Tokenize test data
