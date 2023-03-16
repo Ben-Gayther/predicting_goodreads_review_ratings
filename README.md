@@ -7,10 +7,13 @@ This repository contains code (see `src/`) for predicting the rating of a book r
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-. run_all.sh
+. run_all.sh # this will call prepare_data.sh, train_model.sh, and eval.sh
 ```
 
-This will download the data into data/, train the model, and make predictions on the test set.
-The predictions will be saved in data/predictions.csv.
+This will download the data into `data/`, train the model, and make predictions on the test set.
+The predictions will be saved in `data/predictions.csv`.
 
 `kagglenotebook.ipynb` contains the code for the Kaggle notebook to utilise Kaggle's GPUs. (Not updated yet.)
+
+## EDA Notebook
+`notebooks/EDA.ipynb` contains the code for the simple exploratory data analysis notebook.
