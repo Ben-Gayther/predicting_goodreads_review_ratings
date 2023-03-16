@@ -2,12 +2,10 @@
 
 INPUT=$1
 MODEL=$2
-LEARNING_RATE=$3
-BATCH_SIZE=$4
-OUTPUT=$5
+BATCH_SIZE=$3
+OUTPUT=$4
 
 python src/eval_model.py --input $INPUT \
                          --model $MODEL \
-                         --learning_rate $LEARNING_RATE \
                          --batch_size $BATCH_SIZE \
                          --output $OUTPUT

@@ -23,4 +23,4 @@ mkdir -p models/$MODEL_NAME
 . prepare_data.sh data/goodreads_train.csv data/processed_goodreads_train.csv
 . prepare_data.sh data/goodreads_test.csv data/processed_goodreads_test.csv
 . train.sh data/processed_goodreads_train.csv $MODEL_NAME $LEARNING_RATE $MAX_LENGTH $BATCH_SIZE $EPOCHS models/
-. eval.sh data/processed_goodreads_test.csv models/$MODEL_NAME models/$MODEL_NAME/training_args.bin $BATCH_SIZE data/predictions.csv
+. eval.sh data/processed_goodreads_test.csv models/$MODEL_NAME $BATCH_SIZE data/predictions.csv
