@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # Now use preprocessed data with a HuggingFace transformer model to predict the rating (i.e. sentiment) of a book review.
-# We want to predict the `rating` column, which is a number between 0 and 5. (Form of ordinal regression!)
+# We want to predict the `rating` column, which is a number between 0 and 5.
 import logging
 import torch
 import pandas as pd
@@ -67,6 +67,7 @@ def main(args):
 
     # Read data
     df = pd.read_csv(args.input)
+    df = df.dropna()
     if args.test_run:
         df = df.sample(100)
         logging.info('Doing test run with only 100 samples')
