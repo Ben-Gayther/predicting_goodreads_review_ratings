@@ -2,7 +2,7 @@
 
 This repository contains code (see `src/`) for predicting the rating of a book review on Goodreads (as part of the [Goodreads Challenge](https://www.kaggle.com/competitions/goodreads-books-reviews-290312)).
 
-## To run from scratch:
+## To run from scratch (note will need access to Kaggle API):
 ```
 python3 -m venv venv
 source venv/bin/activate
