@@ -1,6 +1,7 @@
 # Runs all shell scripts in the main directory
 
 # retrieve kaggle dataset if not already downloaded, unzip, and move to data folder
+# Make sure you have kaggle installed and have your API token in ~/.kaggle/kaggle.json!
 if [ ! -f "data/goodreads_train.csv" ]; then
     kaggle competitions download -c goodreads-books-reviews-290312
     unzip goodreads-books-reviews-290312.zip -d goodreads-books-reviews-290312
@@ -14,6 +15,8 @@ LEARNING_RATE=2e-5
 MAX_LENGTH=128
 BATCH_SIZE=1
 EPOCHS=1
+TEST_RUN=""
+# TEST_RUN="--test_run" # uncomment to run a test run
 
 mkdir -p models/$MODEL_NAME
 
