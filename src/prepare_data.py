@@ -14,7 +14,7 @@ PUNCT_TO_REMOVE = string.punctuation
 
 def read_data(path: str) -> pl.DataFrame:
     """Read data from csv file"""
-    df = pl.read_csv(path, has_headers=True)
+    df = pl.read_csv(path)
     return df
 
 
