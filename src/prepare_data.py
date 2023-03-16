@@ -169,7 +169,7 @@ def main(args):
     logging.info('Preprocessed data')
 
     # Save data
-    df.to_csv(args.output)
+    df.write_csv(args.output)
     logging.info(f'Saved data to {args.output}')
 
 
