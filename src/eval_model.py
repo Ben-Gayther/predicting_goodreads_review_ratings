@@ -11,7 +11,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification, Trai
 from datasets import Dataset
 from functools import partial
 
-def cli() -> argparse.Namespace:
+def cli(opt_args=None) -> argparse.Namespace:
     """Create command line interface for evaluating model"""
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', type=str,
@@ -21,7 +21,10 @@ def cli() -> argparse.Namespace:
     parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--output', type=str, default='data/predictions.csv')
     parser.add_argument('--logging', type=str, default='INFO')
-    args = parser.parse_args()
+    if opt_args is not None:
+        args = parser.parse_args(opt_args)
+    else:
+        args = parser.parse_args()
     return args
 
 def main(args):
@@ -81,4 +84,4 @@ if __name__ == '__main__':
     # Parse command line arguments
     args = cli()
 
-    main()
+    main(args)

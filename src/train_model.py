@@ -38,8 +38,7 @@ def compute_metrics(eval_pred: torch.Tensor) -> dict:
         'recall': recall
     }
 
-
-def cli() -> argparse.Namespace:
+def cli(opt_args=None) -> argparse.Namespace:
     """Create command line interface for training model"""
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', type=str,
@@ -52,9 +51,11 @@ def cli() -> argparse.Namespace:
     parser.add_argument('--output', type=str, default='models/')
     parser.add_argument('--test_run', action='store_true')
     parser.add_argument('--logging', type=str, default='INFO')
-    args = parser.parse_args()
+    if opt_args is not None:
+        args = parser.parse_args(opt_args)
+    else:
+        args = parser.parse_args()
     return args
-
 
 def main(args):
     # Set logging level
@@ -149,4 +150,4 @@ if __name__ == '__main__':
     # Parse command line arguments
     args = cli()
 
-    main()
+    main(args)

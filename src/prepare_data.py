@@ -138,7 +138,7 @@ def add_new_features(df: pl.DataFrame) -> pl.DataFrame:
     return df
 
 
-def cli() -> argparse.Namespace:
+def cli(opt_args=None) -> argparse.Namespace:
     """Create command line interface for preprocessing data"""
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', type=str,
@@ -146,7 +146,10 @@ def cli() -> argparse.Namespace:
     parser.add_argument('--output', type=str,
                         default='data/processed_goodreads_train.csv')
     parser.add_argument('--logging', type=str, default='INFO')
-    args = parser.parse_args()
+    if opt_args is not None:
+        args = parser.parse_args(opt_args)
+    else:
+        args = parser.parse_args()
     return args
 
 
