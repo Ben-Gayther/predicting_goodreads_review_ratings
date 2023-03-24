@@ -69,7 +69,7 @@ def main(args):
     df = pd.read_csv(args.input)
     df = df.dropna()
     if args.test_run:
-        df = df.sample(100)
+        df = df.sample(1000)
         logging.info('Doing test run with only 100 samples')
     logging.info(f'Read data from {args.input}')
 
@@ -111,7 +111,7 @@ def main(args):
         per_device_eval_batch_size=args.batch_size,
         weight_decay=0.01,
         learning_rate=args.learning_rate,
-        fp16=True,
+        fp16=True if torch.cuda.is_available() else False, # mixed precision only available on GPU
         evaluation_strategy='epoch',
         save_strategy='epoch',
         load_best_model_at_end=True,
