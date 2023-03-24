@@ -49,13 +49,12 @@ def remove_spoiler_alert(text: str) -> str:
 def preprocess(df: pl.DataFrame, text_col: str) -> pl.DataFrame:
     """Preprocess text data"""
     # Apply preprocessing functions to text_col and make new column 'text'
-    df = df.with_column(
+    df = df.with_columns([
             pl.col(text_col).apply(remove_urls)
                             .apply(remove_html)
-                            .apply(remove_stopwords)
                             .apply(remove_punctuation)
                             .apply(remove_spoiler_alert)
-                            .alias('text'))
+                            .alias('text')])
     return df
 
 
@@ -69,10 +68,10 @@ def calc_time_diff(df: pl.DataFrame) -> pl.DataFrame:
             pl.Date, '%a %b %d %H:%M:%S %z %Y').alias('read_at'),
     ])
 
-    df = df.with_column(
+    df = df.with_columns([
         (pl.col('read_at') - pl.col('started_at')
          ).cast(pl.Int32).alias('days_to_read')
-    )
+    ])
 
     return df
 
@@ -168,8 +167,9 @@ def main(args):
     df = preprocess(df, text_col='review_text')
     logging.info('Preprocessed data')
 
-    # Set data type of 'text' column to string
-    df = df.with_column(pl.col('text').cast(pl.String))
+    # Replace any empty strings in 'text' column with space
+
+
 
     # Save data
     df.write_csv(args.output)
