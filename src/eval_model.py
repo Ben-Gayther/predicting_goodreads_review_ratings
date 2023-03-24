@@ -49,11 +49,8 @@ def main(args):
     tokenizer = AutoTokenizer.from_pretrained(args.model)
     logging.info('Loaded tokenizer')
 
-    # Load test data
-    test_data = pd.read_csv(args.input)
-    logging.info(f'Length of test data: {len(test_data)}')
-    test_data = test_data.dropna()
-    logging.info(f'Length of test data after dropping NaNs: {len(test_data)}')
+    # Load test data (read 'text' column as string)
+    test_data = pd.read_csv(args.input, dtype={'text': str})
     if args.test_run:
         test_data = test_data.sample(100)
         logging.info('Doing test run with only 100 samples')

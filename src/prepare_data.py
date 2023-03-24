@@ -168,6 +168,9 @@ def main(args):
     df = preprocess(df, text_col='review_text')
     logging.info('Preprocessed data')
 
+    # Set data type of 'text' column to string
+    df = df.with_column(pl.col('text').cast(pl.String))
+
     # Save data
     df.write_csv(args.output)
     logging.info(f'Saved data to {args.output}')
