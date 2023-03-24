@@ -50,7 +50,9 @@ def main(args):
     logging.info('Loaded tokenizer')
 
     # Load test data (read 'text' column as string)
-    test_data = pd.read_csv(args.input, dtype={'text': str})
+    test_data = pd.read_csv(args.input)
+    test_data['text'] = test_data['text'].astype(str)
+    test_data['text'] = test_data['text'].apply(lambda x: x.replace('nan', ''))
     if args.test_run:
         test_data = test_data.sample(100)
         logging.info('Doing test run with only 100 samples')
