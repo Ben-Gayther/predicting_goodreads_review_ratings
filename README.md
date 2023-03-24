@@ -4,7 +4,7 @@ This repository contains code (see `src/`) for predicting the rating of a book r
 
 ## To run from scratch (note will need access to Kaggle API):
 ```
-python3 -m venv venv
+python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 . run_all.sh # this will call prepare_data.sh, train_model.sh, and eval.sh
