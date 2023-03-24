@@ -51,6 +51,9 @@ def main(args):
 
     # Load test data
     test_data = pd.read_csv(args.input)
+    logging.info(f'Length of test data: {len(test_data)}')
+    test_data = test_data.dropna()
+    logging.info(f'Length of test data after dropping NaNs: {len(test_data)}')
     if args.test_run:
         test_data = test_data.sample(100)
         logging.info('Doing test run with only 100 samples')
