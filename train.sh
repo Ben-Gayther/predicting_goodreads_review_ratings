@@ -10,20 +10,20 @@ OUTPUT=$7
 TEST_RUN=$8
 
 if [ "$TEST_RUN" = "--test_run" ]; then
-    python src/train_model.py --input $INPUT \
-                              --model $MODEL \
-                              --learning_rate $LEARNING_RATE \
-                              --max_length $MAX_LENGTH \
-                              --batch_size $BATCH_SIZE \
-                              --epochs $EPOCHS \
-                              --output $OUTPUT \
-                              --test_run
+    python src/train_model.py --input "$INPUT" \
+        --model "$MODEL" \
+        --learning_rate "$LEARNING_RATE" \
+        --max_length "$MAX_LENGTH" \
+        --batch_size "$BATCH_SIZE" \
+        --epochs "$EPOCHS" \
+        --output "$OUTPUT" \
+        --test_run
 else
-    python src/train_model.py --input $INPUT \
-                              --model $MODEL \
-                              --learning_rate $LEARNING_RATE \
-                              --max_length $MAX_LENGTH \
-                              --batch_size $BATCH_SIZE \
-                              --epochs $EPOCHS \
-                              --output $OUTPUT
+    python src/train_model.py --input "$INPUT" \
+        --model "$MODEL" \
+        --learning_rate "$LEARNING_RATE" \
+        --max_length "$MAX_LENGTH" \
+        --batch_size "$BATCH_SIZE" \
+        --epochs "$EPOCHS" \
+        --output "$OUTPUT"
 fi
