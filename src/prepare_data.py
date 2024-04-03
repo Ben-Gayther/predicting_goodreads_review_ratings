@@ -3,7 +3,7 @@ import pathlib
 import re
 
 import config as cfg
-import polars as pl
+import pandas as pd
 
 
 def remove_urls(text: str) -> str:
@@ -24,31 +24,29 @@ def remove_spoiler_alert(text: str) -> str:
     return spoiler.sub(r"", text)
 
 
-def preprocess_text(df: pl.DataFrame) -> pl.DataFrame:
+def preprocess_text(df: pd.DataFrame) -> pd.DataFrame:
     """Preprocess text data and make new column 'text'"""
-    df = df.with_columns(
-        [
-            pl.col("review_text")
-            .map_elements(remove_urls, return_dtype=str)
-            .map_elements(remove_html, return_dtype=str)
-            .map_elements(remove_spoiler_alert, return_dtype=str)
-            .alias("text")
-        ]
+    df["text"] = (
+        df["review_text"]
+        .apply(remove_urls)
+        .apply(remove_html)
+        .apply(remove_spoiler_alert)
     )
+
     return df
 
 
-def process_data(input_path: str, output_path: str) -> pl.DataFrame:
+def process_data(input_path: str, output_path: str) -> pd.DataFrame:
     # Make sure output directory exists
     pathlib.Path(output_path).parent.mkdir(parents=True, exist_ok=True)
 
-    df = pl.read_csv(input_path)
+    df = pd.read_csv(input_path)
     logging.info(f"Read data from {input_path}, fields are {df.columns}")
 
     df = preprocess_text(df)
     logging.info("Preprocessed data")
 
-    df.write_csv(output_path)
+    df.to_csv(output_path, index=False)
     logging.info(f"Saved data to {output_path}")
 
     return df
