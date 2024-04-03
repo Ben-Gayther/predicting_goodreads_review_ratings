@@ -70,7 +70,7 @@ def main(args):
     df = df.dropna()
     if args.test_run:
         df = df.sample(1000)
-        logging.info("Doing test run with only 100 samples")
+        logging.info("Doing test run with only 1000 samples")
     logging.info(f"Read data from {args.input}")
 
     # stratify to keep the same distribution of ratings in train and test
@@ -96,11 +96,23 @@ def main(args):
     )
     logging.info("Tokenized data")
 
-    id2label = {k: k for k in range(6)}  # 6 classes (ratings 1-5 inclusive)
-    label2id = {k: k for k in range(6)}
+    # 6 classes (ratings 0-5 stars)
+    id2label = {
+        "0": "0-star",
+        "1": "1-star",
+        "2": "2-star",
+        "3": "3-star",
+        "4": "4-star",
+        "5": "5-star",
+    }
+    label2id = {v: k for k, v in id2label.items()}
 
     model = AutoModelForSequenceClassification.from_pretrained(
-        args.model, id2label=id2label, label2id=label2id, num_labels=6
+        args.model,
+        id2label=id2label,
+        label2id=label2id,
+        num_labels=len(id2label),
+        ignore_mismatched_sizes=True,
     )
     model.to(device)
 
@@ -122,6 +134,7 @@ def main(args):
         load_best_model_at_end=True,
         metric_for_best_model="f1",
         greater_is_better=True,
+        logging_dir=results_dir,
         run_name="goodreads",
     )
 
@@ -147,7 +160,7 @@ def main(args):
 
     trainer.save_model(results_dir)
     tokenizer.save_pretrained(results_dir)
-    logging.info(f"Saved model and tokenizer to {results_dir}")
+    logging.info(f"Saved transformer model and tokenizer to {results_dir}")
 
 
 if __name__ == "__main__":
