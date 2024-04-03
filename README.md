@@ -27,4 +27,4 @@ The predictions will be saved in `data/predictions.csv`.
 
 The kaggle notebook which executes the same code is `kagglenotebook.ipynb` in order to utilise Kaggle's GPUs.
 
-A small notebook on exploratory data analysis is also included in `notebooks/EDA.ipynb`.
+A small notebook on exploratory data analysis is also included in `notebooks/development.ipynb`.
