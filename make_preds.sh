@@ -7,14 +7,14 @@ OUTPUT=$4
 TEST_RUN=$5
 
 if [ "$TEST_RUN" = "--test_run" ]; then
-    python src/eval_model.py --input $INPUT \
-                             --model $MODEL \
-                             --batch_size $BATCH_SIZE \
-                             --output $OUTPUT \
-                             --test_run
+    python src/make_preds.py --input "$INPUT" \
+        --model "$MODEL" \
+        --batch_size "$BATCH_SIZE" \
+        --output "$OUTPUT" \
+        --test_run
 else
-    python src/eval_model.py --input $INPUT \
-                            --model $MODEL \
-                            --batch_size $BATCH_SIZE \
-                            --output $OUTPUT
+    python src/make_preds.py --input "$INPUT" \
+        --model "$MODEL" \
+        --batch_size "$BATCH_SIZE" \
+        --output "$OUTPUT"
 fi

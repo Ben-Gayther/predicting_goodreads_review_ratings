@@ -17,7 +17,8 @@ if [ "$TEST_RUN" = "--test_run" ]; then
         --batch_size "$BATCH_SIZE" \
         --epochs "$EPOCHS" \
         --output "$OUTPUT" \
-        --test_run
+        --test_run \
+        --full_set
 else
     python src/train_model.py --input "$INPUT" \
         --model "$MODEL" \
