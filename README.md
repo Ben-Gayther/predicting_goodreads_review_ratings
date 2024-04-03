@@ -21,6 +21,7 @@ Then run the following to download the data, train the model, and make predictio
 
 ```bash
 poetry shell # activate the virtual environment, if using poetry
+./download_data.sh # download the data from Kaggle
 ./run_all.sh # this will call the various scripts in the src directories
 ```
 
