@@ -47,6 +47,7 @@ def cli(opt_args=None) -> argparse.Namespace:
         "--input", type=str, default="data/processed_goodreads_train.csv"
     )
     parser.add_argument("--model", type=str, default="distilbert-base-uncased")
+    parser.add_argument("--full_set", action="store_true", help="Use full dataset")
     parser.add_argument("--learning_rate", type=float, default=2e-5)
     parser.add_argument("--max_length", type=int, default=256)
     parser.add_argument("--batch_size", type=int, default=1)
@@ -73,28 +74,8 @@ def main(args):
         logging.info("Doing test run with only 1000 samples")
     logging.info(f"Read data from {args.input}")
 
-    # stratify to keep the same distribution of ratings in train and test
-    train, test = train_test_split(df, test_size=0.2, stratify=df["rating"])
-    logging.info("Split data into train and test (80/20)")
-
-    train_dataset = Dataset.from_pandas(train)
-    test_dataset = Dataset.from_pandas(test)
-
     tokenizer = AutoTokenizer.from_pretrained(args.model)
     logging.info(f"Using {args.model} tokenizer and model")
-
-    train_dataset = train_dataset.map(
-        partial(tokenizer_with_labels, tokenizer=tokenizer, max_length=args.max_length),
-        batched=True,
-        remove_columns=["rating", "text", "user_id", "book_id", "review_id"],
-        # input_columns=["text"],
-    )
-    test_dataset = test_dataset.map(
-        partial(tokenizer_with_labels, tokenizer=tokenizer, max_length=args.max_length),
-        batched=True,
-        remove_columns=["rating", "text", "user_id", "book_id", "review_id"],
-    )
-    logging.info("Tokenized data")
 
     # 6 classes (ratings 0-5 stars)
     id2label = {
@@ -106,7 +87,6 @@ def main(args):
         "5": "5-star",
     }
     label2id = {v: k for k, v in id2label.items()}
-
     model = AutoModelForSequenceClassification.from_pretrained(
         args.model,
         id2label=id2label,
@@ -129,34 +109,92 @@ def main(args):
         fp16=True
         if torch.cuda.is_available()
         else False,  # mixed precision only available on GPU
-        evaluation_strategy="epoch",
+        evaluation_strategy="no" if args.full_set else "epoch",
+        do_eval=not args.full_set,
         save_strategy="epoch",
-        load_best_model_at_end=True,
+        load_best_model_at_end=False if args.full_set else True,
         metric_for_best_model="f1",
         greater_is_better=True,
         logging_dir=results_dir,
         run_name="goodreads",
     )
 
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=train_dataset,
-        eval_dataset=test_dataset,
-        compute_metrics=compute_metrics,
-    )
+    if not args.full_set:
+        # stratify to keep the same distribution of ratings in train and test
+        train, test = train_test_split(df, test_size=0.2, stratify=df["rating"])
+        logging.info("Splitting data into train and test (80/20)")
 
-    train_results = trainer.train()
+        train_dataset = Dataset.from_pandas(train)
+        test_dataset = Dataset.from_pandas(test)
 
-    train_results_df = pd.DataFrame(train_results.metrics, index=[0])
-    train_results_df.to_csv(f"{results_dir}/train_results.csv", index=False)
-    logging.info(f"Trained model and saved results to {results_dir}/train_results.csv")
+        train_dataset = train_dataset.map(
+            partial(
+                tokenizer_with_labels, tokenizer=tokenizer, max_length=args.max_length
+            ),
+            batched=True,
+            remove_columns=["rating", "text", "user_id", "book_id", "review_id"],
+            # input_columns=["text"],
+        )
+        test_dataset = test_dataset.map(
+            partial(
+                tokenizer_with_labels, tokenizer=tokenizer, max_length=args.max_length
+            ),
+            batched=True,
+            remove_columns=["rating", "text", "user_id", "book_id", "review_id"],
+        )
+        logging.info("Tokenized data")
 
-    eval_results = trainer.evaluate()
+        trainer = Trainer(
+            model=model,
+            args=training_args,
+            train_dataset=train_dataset,
+            eval_dataset=test_dataset,
+            compute_metrics=compute_metrics,
+        )
 
-    eval_results_df = pd.DataFrame(eval_results, index=[0])
-    eval_results_df.to_csv(f"{results_dir}/eval_results.csv", index=False)
-    logging.info(f"Evaluated model and saved results to {results_dir}/eval_results.csv")
+        train_results = trainer.train()
+
+        train_results_df = pd.DataFrame(train_results.metrics, index=[0])
+        train_results_df.to_csv(f"{results_dir}/train_results.csv", index=False)
+        logging.info(
+            f"Trained model and saved results to {results_dir}/train_results.csv"
+        )
+
+        eval_results = trainer.evaluate()
+
+        eval_results_df = pd.DataFrame(eval_results, index=[0])
+        eval_results_df.to_csv(f"{results_dir}/eval_results.csv", index=False)
+        logging.info(
+            f"Evaluated model and saved results to {results_dir}/eval_results.csv"
+        )
+
+    else:
+        logging.info("Using full dataset for training")
+        full_dataset = Dataset.from_pandas(df)
+
+        full_dataset = full_dataset.map(
+            partial(
+                tokenizer_with_labels, tokenizer=tokenizer, max_length=args.max_length
+            ),
+            batched=True,
+            remove_columns=["rating", "text", "user_id", "book_id", "review_id"],
+        )
+        logging.info("Tokenized data")
+
+        trainer = Trainer(
+            model=model,
+            args=training_args,
+            train_dataset=full_dataset,
+            compute_metrics=compute_metrics,
+        )
+
+        train_results = trainer.train()
+
+        train_results_df = pd.DataFrame(train_results.metrics, index=[0])
+        train_results_df.to_csv(f"{results_dir}/train_results.csv", index=False)
+        logging.info(
+            f"Trained model and saved results to {results_dir}/train_results.csv"
+        )
 
     trainer.save_model(results_dir)
     tokenizer.save_pretrained(results_dir)
