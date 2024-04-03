@@ -31,11 +31,11 @@ def remove_spoiler_alert(text: str) -> str:
     return spoiler.sub(r"", text)
 
 
-def preprocess_text(df: pl.DataFrame, text_col: str) -> pl.DataFrame:
+def preprocess_text(df: pl.DataFrame) -> pl.DataFrame:
     """Preprocess text data and make new column 'text'"""
     df = df.with_columns(
         [
-            pl.col(text_col)
+            pl.col("review_text")
             .map_elements(remove_urls, return_dtype=str)
             .map_elements(remove_html, return_dtype=str)
             .map_elements(remove_spoiler_alert, return_dtype=str)
@@ -66,10 +66,9 @@ def main(args):
     pathlib.Path(args.output).parent.mkdir(parents=True, exist_ok=True)
 
     df = read_data(args.input)
-    logging.info(f"Read data from {args.input}")
-    logging.info(f"Fields are {df.columns}")
+    logging.info(f"Read data from {args.input}, fields are {df.columns}")
 
-    df = preprocess_text(df, text_col="review_text")
+    df = preprocess_text(df)
     logging.info("Preprocessed data")
 
     df.write_csv(args.output)
