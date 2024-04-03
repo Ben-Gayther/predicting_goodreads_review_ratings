@@ -16,15 +16,16 @@ Alternatively, you can install the dependencies using `pip` and the provided `re
 pip install -r requirements.txt
 ```
 
-Then run the following to download the data, train the model, and make predictions on the test set:
+Then run the following to download the data, train the model, and make predictions on the test set.
+(Make sure Kaggle API key is set to download the data!)
 
 ```bash
 poetry shell # activate the virtual environment, if using poetry
-./run_all.sh # this will call prepare_data.sh, train_model.sh, and eval.sh
+./run_all.sh # this will call the various scripts in the src directories
 ```
 
 The predictions will be saved in `data/predictions.csv`.
 
 The kaggle notebook which executes the same code is `kagglenotebook.ipynb` in order to utilise Kaggle's GPUs.
 
-A small notebook on exploratory data analysis is also included in `notebooks/development.ipynb`.
+A small notebook containg some of the inital analysis is also included in `notebooks/development.ipynb`.
