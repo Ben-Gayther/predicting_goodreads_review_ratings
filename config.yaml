@@ -1,0 +1,22 @@
+---
+LOGGING:
+  LEVEL: "INFO"
+  FORMAT: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+TRAINING_ARGS:
+  MODEL_NAME: "nlptown/bert-base-multilingual-uncased-sentiment"
+  LEARNING_RATE: 2e-5
+  MAX_LENGTH: 128
+  BATCH_SIZE: 1
+  EPOCHS: 1
+  FULL_DATASET: True
+  TEST_RUN: True
+  INPUT_DATA: "data/processed_goodreads_train.csv"
+  OUTPUT_DIR: "models/"
+  SUBMISSION_NAME: "submission.csv"
+
+DATA_ARGS:
+  INPUT_TRAIN_DATA: "data/goodreads_train.csv"
+  OUTPUT_TRAIN_NAME: "data/processed_goodreads_train.csv"
+  INPUT_TEST_DATA: "data/goodreads_test.csv"
+  OUTPUT_TEST_NAME: "data/processed_goodreads_test.csv"
