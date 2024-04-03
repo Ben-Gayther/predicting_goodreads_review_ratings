@@ -15,13 +15,12 @@ logging_format = LOGGING.get(
 model_name = TRAINING_ARGS.get(
     "MODEL_NAME", "nlptown/bert-base-multilingual-uncased-sentiment"
 )
-learning_rate = TRAINING_ARGS.get("LEARNING_RATE", 2e-5)
+learning_rate = TRAINING_ARGS.get("LEARNING_RATE", 2.0e-5)
 max_length = TRAINING_ARGS.get("MAX_LENGTH", 128)
 batch_size = TRAINING_ARGS.get("BATCH_SIZE", 1)
 epochs = TRAINING_ARGS.get("EPOCHS", 1)
 full_dataset = TRAINING_ARGS.get("FULL_DATASET", False)
 test_run = TRAINING_ARGS.get("TEST_RUN", True)
-# input_data = TRAINING_ARGS.get("INPUT_DATA", "data/processed_goodreads_train.csv")
 output_dir = TRAINING_ARGS.get("OUTPUT_DIR", "models/")
 submission_name = TRAINING_ARGS.get("SUBMISSION_NAME", "submission.csv")
 
