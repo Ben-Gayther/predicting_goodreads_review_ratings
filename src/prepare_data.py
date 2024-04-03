@@ -1,16 +1,9 @@
-#!/usr/bin/env python
-import argparse
 import logging
 import pathlib
 import re
 
+import config as cfg
 import polars as pl
-
-
-def read_data(path: str) -> pl.DataFrame:
-    """Read data from csv file"""
-    df = pl.read_csv(path)
-    return df
 
 
 def remove_urls(text: str) -> str:
@@ -45,38 +38,30 @@ def preprocess_text(df: pl.DataFrame) -> pl.DataFrame:
     return df
 
 
-def cli(opt_args=None) -> argparse.Namespace:
-    """Create command line interface for preprocessing data"""
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--input", type=str, default="data/goodreads_train.csv")
-    parser.add_argument(
-        "--output", type=str, default="data/processed_goodreads_train.csv"
-    )
-    parser.add_argument("--logging", type=str, default="INFO")
-    if opt_args is not None:
-        args = parser.parse_args(opt_args)
-    else:
-        args = parser.parse_args()
-    return args
+def process_data(input_path: str, output_path: str) -> pl.DataFrame:
+    # Make sure output directory exists
+    pathlib.Path(output_path).parent.mkdir(parents=True, exist_ok=True)
 
-
-def main(args):
-    logging.basicConfig(level=args.logging)
-
-    pathlib.Path(args.output).parent.mkdir(parents=True, exist_ok=True)
-
-    df = read_data(args.input)
-    logging.info(f"Read data from {args.input}, fields are {df.columns}")
+    df = pl.read_csv(input_path)
+    logging.info(f"Read data from {input_path}, fields are {df.columns}")
 
     df = preprocess_text(df)
     logging.info("Preprocessed data")
 
-    df.write_csv(args.output)
-    logging.info(f"Saved data to {args.output}")
+    df.write_csv(output_path)
+    logging.info(f"Saved data to {output_path}")
+
+    return df
+
+
+def main():
+    logging.basicConfig(level=cfg.logging_level, format=cfg.logging_format)
+
+    process_data(cfg.input_train_data, cfg.output_train_data)
+    process_data(cfg.input_test_data, cfg.output_test_data)
+
+    logging.info("Finished preprocessing data")
 
 
 if __name__ == "__main__":
-    # Parse command line arguments
-    args = cli()
-
-    main(args)
+    main()

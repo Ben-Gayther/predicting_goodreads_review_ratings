@@ -1,8 +1,7 @@
-#!/usr/bin/env python
-import argparse
 import logging
 from functools import partial
 
+import config as cfg
 import numpy as np
 import pandas as pd
 import torch
@@ -24,42 +23,23 @@ def tokenizer_without_labels(
     return examples
 
 
-def cli(opt_args=None) -> argparse.Namespace:
-    """Create command line interface for evaluating model"""
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--input", type=str, default="data/processed_goodreads_test.csv"
-    )
-    parser.add_argument("--model", type=str, default="models/distilbert-base-uncased/")
-    parser.add_argument("--batch_size", type=int, default=1)
-    parser.add_argument("--output", type=str, default="submission.csv")
-    parser.add_argument("--test_run", action="store_true")
-    parser.add_argument("--logging", type=str, default="INFO")
-    if opt_args is not None:
-        args = parser.parse_args(opt_args)
-    else:
-        args = parser.parse_args()
-    return args
-
-
-def main(args):
-    logging.basicConfig(level=args.logging)
-
+def main():
+    logging.basicConfig(level=cfg.logging_level, format=cfg.logging_format)
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-    model = AutoModelForSequenceClassification.from_pretrained(args.model)
+    model = AutoModelForSequenceClassification.from_pretrained(cfg.model_name)
     model.to(device)
     logging.info("Loaded model")
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model)
+    tokenizer = AutoTokenizer.from_pretrained(cfg.model_name)
     logging.info("Loaded tokenizer")
 
-    test_data = pd.read_csv(args.input)
+    test_data = pd.read_csv(cfg.output_test_data)
 
     test_data["text"] = test_data["text"].astype(str)
     test_data["text"] = test_data["text"].apply(lambda x: x.replace("nan", ""))
 
-    if args.test_run:
+    if cfg.test_run:
         test_data = test_data.sample(100)
         logging.info("Doing test run with only 100 samples")
 
@@ -79,7 +59,7 @@ def main(args):
     )
     logging.info("Tokenized test data")
 
-    test_data["rating"] = 0
+    test_data["rating"] = 0  # Placeholder for predictions
 
     trainer = Trainer(model)
     preds = trainer.predict(test_ds).predictions
@@ -87,16 +67,13 @@ def main(args):
 
     test_data.rating = preds
 
-    # Check distribution of predictions
+    # Check distribution of predictions is sensible
     logging.info(test_data.rating.value_counts())
 
-    test_data.to_csv(args.output, index=False)
+    test_data.to_csv(cfg.submission_name, index=False)
 
     logging.info("Saved predictions to csv file")
 
 
 if __name__ == "__main__":
-    # Parse command line arguments
-    args = cli()
-
-    main(args)
+    main()
