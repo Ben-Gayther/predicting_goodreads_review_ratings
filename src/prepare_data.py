@@ -20,7 +20,7 @@ def remove_html(text: str) -> str:
 
 def remove_spoiler_alert(text: str) -> str:
     """Remove spoiler alert from a string (Goodreads specific)"""
-    spoiler = re.compile(r"(\(view spoiler\).*?\(hide spoiler\))")
+    spoiler = re.compile(r"\(view\s+spoiler\)\[.*?\(hide\s+spoiler\)\]")
     return spoiler.sub(r"", text)
 
 
