@@ -1,6 +1,7 @@
 import logging
 import pathlib
 from functools import partial
+from typing import Optional
 
 import config as cfg
 import pandas as pd
@@ -16,7 +17,7 @@ from transformers import (
 )
 
 
-def tokenizer_with_labels(
+def tokenize_and_add_labels(
     examples: Dataset, tokenizer: AutoTokenizer, max_length: int
 ) -> Dataset:
     """Tokenize data"""
@@ -39,21 +40,7 @@ def compute_metrics(eval_pred: torch.Tensor) -> dict:
     return {"accuracy": accuracy, "f1": f1, "precision": precision, "recall": recall}
 
 
-def main():
-    logging.basicConfig(level=cfg.logging_level, format=cfg.logging_format)
-    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-
-    df = pd.read_csv(cfg.output_train_data)
-
-    if cfg.test_run:
-        df = df.sample(1000)
-        logging.info("Doing test run with only 1000 samples")
-
-    logging.info(f"Read data from {cfg.output_train_data}")
-
-    tokenizer = AutoTokenizer.from_pretrained(cfg.model_name)
-    logging.info(f"Using {cfg.model_name} tokenizer and model")
-
+def create_model(model_name: str) -> AutoModelForSequenceClassification:
     # 6 classes (ratings 0-5 stars)
     id2label = {
         "0": "0-star",
@@ -65,17 +52,33 @@ def main():
     }
     label2id = {v: k for k, v in id2label.items()}
     model = AutoModelForSequenceClassification.from_pretrained(
-        cfg.model_name,
+        model_name,
         id2label=id2label,
         label2id=label2id,
         num_labels=len(id2label),
         ignore_mismatched_sizes=True,
     )
-    model.to(device)
+    return model
 
-    results_dir = cfg.output_dir + cfg.model_name
-    pathlib.Path(results_dir).mkdir(parents=True, exist_ok=True)
 
+def prepare_dataset(
+    df: pd.DataFrame, tokenizer: AutoTokenizer, max_length: int
+) -> Dataset:
+    dataset = Dataset.from_pandas(df)
+    dataset = dataset.map(
+        partial(tokenize_and_add_labels, tokenizer=tokenizer, max_length=max_length),
+        batched=True,
+        remove_columns=["rating", "text", "user_id", "book_id", "review_id"],
+    )
+    return dataset
+
+
+def setup_trainer(
+    model: AutoModelForSequenceClassification,
+    train_dataset: Dataset,
+    results_dir: str,
+    eval_dataset: Optional[Dataset] = None,
+) -> Trainer:
     training_args = TrainingArguments(
         output_dir=results_dir,
         num_train_epochs=cfg.epochs,
@@ -96,38 +99,49 @@ def main():
         run_name="goodreads",
     )
 
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
+        compute_metrics=compute_metrics,
+    )
+
+    return trainer
+
+
+def main():
+    logging.basicConfig(level=cfg.logging_level, format=cfg.logging_format)
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
+    df = pd.read_csv(cfg.output_train_data)
+
+    if cfg.test_run:
+        df = df.sample(1000)
+        logging.info("Doing test run with only 1000 samples")
+
+    logging.info(f"Read data from {cfg.output_train_data}")
+
+    tokenizer = AutoTokenizer.from_pretrained(cfg.model_name)
+    model = create_model(cfg.model_name)
+    model.to(device)
+
+    logging.info(f"Using {cfg.model_name} tokenizer and model for fine-tuning")
+
+    results_dir = cfg.output_dir + cfg.model_name
+    pathlib.Path(results_dir).mkdir(parents=True, exist_ok=True)
+
     if not cfg.full_dataset:
         # stratify to keep the same distribution of ratings in train and test
-        train, test = train_test_split(df, test_size=0.2, stratify=df["rating"])
+        train_df, test_df = train_test_split(df, test_size=0.2, stratify=df["rating"])
         logging.info("Splitting data into train and test (80/20)")
 
-        train_dataset = Dataset.from_pandas(train)
-        test_dataset = Dataset.from_pandas(test)
+        train_dataset = prepare_dataset(train_df, tokenizer, cfg.max_length)
+        test_dataset = prepare_dataset(test_df, tokenizer, cfg.max_length)
 
-        train_dataset = train_dataset.map(
-            partial(
-                tokenizer_with_labels, tokenizer=tokenizer, max_length=cfg.max_length
-            ),
-            batched=True,
-            remove_columns=["rating", "text", "user_id", "book_id", "review_id"],
-            # input_columns=["text"],
-        )
-        test_dataset = test_dataset.map(
-            partial(
-                tokenizer_with_labels, tokenizer=tokenizer, max_length=cfg.max_length
-            ),
-            batched=True,
-            remove_columns=["rating", "text", "user_id", "book_id", "review_id"],
-        )
         logging.info("Tokenized data")
 
-        trainer = Trainer(
-            model=model,
-            args=training_args,
-            train_dataset=train_dataset,
-            eval_dataset=test_dataset,
-            compute_metrics=compute_metrics,
-        )
+        trainer = setup_trainer(model, train_dataset, results_dir, test_dataset)
 
         train_results = trainer.train()
 
@@ -147,23 +161,10 @@ def main():
 
     else:
         logging.info("Using full dataset for training")
-        full_dataset = Dataset.from_pandas(df)
-
-        full_dataset = full_dataset.map(
-            partial(
-                tokenizer_with_labels, tokenizer=tokenizer, max_length=cfg.max_length
-            ),
-            batched=True,
-            remove_columns=["rating", "text", "user_id", "book_id", "review_id"],
-        )
+        full_dataset = prepare_dataset(df, tokenizer, cfg.max_length)
         logging.info("Tokenized data")
 
-        trainer = Trainer(
-            model=model,
-            args=training_args,
-            train_dataset=full_dataset,
-            compute_metrics=compute_metrics,
-        )
+        trainer = setup_trainer(model, full_dataset, results_dir)
 
         train_results = trainer.train()
 
