@@ -35,31 +35,30 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(cfg.model_name)
     logging.info("Loaded tokenizer")
 
-    test_data = pd.read_csv(cfg.output_test_data)
+    test_df = pd.read_csv(cfg.output_test_data)
 
-    test_data["text"] = test_data["text"].astype(str)
-    test_data["text"] = test_data["text"].apply(lambda x: x.replace("nan", ""))
+    test_df["text"] = test_df["text"].astype(str)
+    test_df["text"] = test_df["text"].apply(lambda x: x.replace("nan", ""))
 
     if cfg.test_run:
-        test_data = test_data.sample(100)
+        test_df = test_df.sample(100)
         logging.info("Doing test run with only 100 samples")
 
     logging.info("Loaded test data")
 
-    test_ds = Dataset.from_pandas(test_data)
-
-    test_ds = test_ds.map(
+    test_dataset = Dataset.from_pandas(test_df)
+    test_dataset = test_dataset.map(
         partial(
             tokenizer_without_labels,
             tokenizer=tokenizer,
             max_length=tokenizer.model_max_length,
         ),
         batched=True,
-        remove_columns=test_data.columns.drop("text").to_list(),
+        remove_columns=test_df.columns.drop("text").to_list(),
     )
     logging.info("Tokenized test data")
 
-    test_data["rating"] = 0  # Placeholder for predictions
+    test_df["rating"] = 0  # Placeholder for predictions
 
     # Use pipeline to get predictions
     classifier = pipeline(
@@ -72,21 +71,19 @@ def main():
     )
 
     pred_ratings = []
-    for out in classifier(KeyDataset(test_ds, "text"), batch_size=cfg.batch_size):
+    for out in classifier(KeyDataset(test_dataset, "text"), batch_size=cfg.batch_size):
         pred_ratings.extend(
             [int(out["label"].split("-")[0])]
         )  # convert "label": "4-star" to 4
 
-    test_data["rating"] = pred_ratings
+    test_df["rating"] = pred_ratings
 
     # Check distribution of predictions is sensible
-    logging.info(test_data.rating.value_counts())
+    logging.info(test_df.rating.value_counts())
 
-    test_data = test_data[
-        ["review_id", "rating"]
-    ]  # Keep only review_id and rating columns
+    test_df = test_df[["review_id", "rating"]]  # Keep only review_id and rating columns
 
-    test_data.to_csv(cfg.submission_name, index=False)
+    test_df.to_csv(cfg.submission_name, index=False)
 
     logging.info("Saved predictions to csv file")
 
