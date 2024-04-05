@@ -25,6 +25,8 @@ poetry shell # activate the virtual environment, if using poetry
 ./run_all.sh # this will call the various scripts in the src directories
 ```
 
+The configuration settings for these scripts can be modified by changing the values in `config.yaml`.
+
 The predictions will be saved in `data/predictions.csv`.
 
 The kaggle notebook which executes the same code is `kagglenotebook.ipynb` in order to utilise Kaggle's GPUs.
