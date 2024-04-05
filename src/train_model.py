@@ -142,36 +142,28 @@ def main():
         logging.info("Tokenized data")
 
         trainer = setup_trainer(model, train_dataset, results_dir, test_dataset)
+    else:
+        logging.info("Using full dataset for training")
 
-        train_results = trainer.train()
+        full_dataset = prepare_dataset(df, tokenizer, cfg.max_length)
+        logging.info("Tokenized data")
 
-        train_results_df = pd.DataFrame(train_results.metrics, index=[0])
-        train_results_df.to_csv(f"{results_dir}/train_results.csv", index=False)
-        logging.info(
-            f"Trained model and saved results to {results_dir}/train_results.csv"
-        )
+        trainer = setup_trainer(model, full_dataset, results_dir)
 
+    train_results = trainer.train()
+    logging.info("Finished training model")
+
+    train_results_df = pd.DataFrame(train_results.metrics, index=[0])
+    train_results_df.to_csv(f"{results_dir}/train_results.csv", index=False)
+    logging.info(f"Trained model and saved results to {results_dir}/train_results.csv")
+
+    if not cfg.full_dataset:
         eval_results = trainer.evaluate()
 
         eval_results_df = pd.DataFrame(eval_results, index=[0])
         eval_results_df.to_csv(f"{results_dir}/eval_results.csv", index=False)
         logging.info(
             f"Evaluated model and saved results to {results_dir}/eval_results.csv"
-        )
-
-    else:
-        logging.info("Using full dataset for training")
-        full_dataset = prepare_dataset(df, tokenizer, cfg.max_length)
-        logging.info("Tokenized data")
-
-        trainer = setup_trainer(model, full_dataset, results_dir)
-
-        train_results = trainer.train()
-
-        train_results_df = pd.DataFrame(train_results.metrics, index=[0])
-        train_results_df.to_csv(f"{results_dir}/train_results.csv", index=False)
-        logging.info(
-            f"Trained model and saved results to {results_dir}/train_results.csv"
         )
 
     trainer.save_model(results_dir)
