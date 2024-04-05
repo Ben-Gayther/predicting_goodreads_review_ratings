@@ -1,8 +1,8 @@
 # predicting_goodreads_review_ratings
 
-This repository contains code (see `src/`) for predicting the rating of a book review on Goodreads (as part of the [Goodreads Challenge](https://www.kaggle.com/competitions/goodreads-books-reviews-290312)).
+This repository contains code (see `src/`) for predicting the rating of a book review on Goodreads (as part of the [Goodreads Challenge](https://www.kaggle.com/competitions/goodreads-books-reviews-290312)). The dataset contains more than 1.3M book reviews about 25,475 books from 18,892 users. The goal is to predict the rating of a book review based on the text of the review. This repository is used to fine-tune a BERT model for this task.
 
-## To run from scratch
+## To run fine-tuning from scratch
 
 Install packages using poetry:
 
@@ -32,3 +32,14 @@ The predictions will be saved in `data/predictions.csv`.
 The kaggle notebook which executes the same code is `kagglenotebook.ipynb` in order to utilise Kaggle's GPUs.
 
 A small notebook containg some of the inital analysis is also included in `notebooks/development.ipynb`.
+
+## To run the tests
+
+Run the following command from the root directory:
+
+```bash
+python -m pytest
+```
+
+This will run the tests in the `tests/` directory and will output a coverage report to the terminal.
+The configuration settings for pytest are in `pyproject.toml`.
