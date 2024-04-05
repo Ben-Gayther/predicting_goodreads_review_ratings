@@ -1,6 +1,6 @@
 # Predicting Goodreads Review Ratings
 
-This repository contains code (see `src/`) for predicting the rating of a book review on Goodreads (as part of the [Goodreads Challenge](https://www.kaggle.com/competitions/goodreads-books-reviews-290312)). The dataset contains more than 1.3 million book reviews about 25,475 books from 18,892 users. The goal is to predict the rating of a book review based on the text of the review. This repository is used to fine-tune a BERT model for this task.
+This repository contains code (see `src/`) for predicting the rating of a book review on Goodreads (as part of the [Goodreads Challenge](https://www.kaggle.com/competitions/goodreads-books-reviews-290312)). The dataset contains more than 1.3 million book reviews on roughly 25,000 books. The goal is to predict the rating of a book review based on the text of the review. This repository is used to fine-tune a BERT model for this task.
 
 ## To run fine-tuning from scratch
 
