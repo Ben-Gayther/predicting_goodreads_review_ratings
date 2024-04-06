@@ -29,7 +29,7 @@ The configuration settings for these scripts can be modified by changing the val
 
 The predictions will be saved to `submission.csv`.
 
-The kaggle notebook which executes the same code is `kagglenotebook.ipynb` in order to utilise Kaggle's GPUs.
+The kaggle notebook which executes the same code is `kaggle_submission.ipynb` in order to utilise Kaggle's GPUs.
 
 A small notebook containg some of the inital analysis is also included in `notebooks/development.ipynb`.
 
